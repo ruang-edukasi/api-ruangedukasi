@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+const authAdminRouter = require("./admin/auth.route");
+const profileAdminRouter = require("./admin/profile.route");
 
 // Default router
 router.get("/", (req, res) => {
@@ -9,5 +11,9 @@ router.get("/", (req, res) => {
     message: "Successful access homepage API",
   });
 });
+
+// Admin
+router.use("/auth/admin", authAdminRouter);
+router.use("/admin/profile", profileAdminRouter);
 
 module.exports = router;
