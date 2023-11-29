@@ -52,6 +52,7 @@ model Admin {
   country       String?
   emailToken    String?  @map("email_token")
   passwordToken String?  @map("password_token")
+  otpCode       String?  @map("otp_code")
   status        String?
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
@@ -171,6 +172,7 @@ model User {
   country           String?
   emailToken        String?             @map("email_token")
   passwordToken     String?             @map("password_token")
+  otpCode           String?             @map("otp_code")
   status            String?
   createdAt         DateTime            @default(now()) @map("created_at")
   updatedAt         DateTime            @updatedAt @map("updated_at")
