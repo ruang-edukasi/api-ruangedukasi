@@ -23,7 +23,7 @@ model CourseType {
 model CourseCategory {
   id           Int      @id @default(autoincrement())
   categoryName String   @map("category_name")
-  imageUrl     String   @map("image_url")
+  imageUrl     String?   @map("image_url")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
   course       Course[]
@@ -75,13 +75,13 @@ model Course {
   contentCount      Int?                @map("content_count")
   createdAt         DateTime            @default(now()) @map("created_at")
   updatedAt         DateTime            @updatedAt @map("updated_at")
-  CourseType        CourseType?         @relation(fields: [courseTypeId], references: [id])
+  CourseType        CourseType?        @relation(fields: [courseTypeId], references: [id])
   courseTypeId      Int?                @map("course_type_id")
   CourseCategory    CourseCategory?     @relation(fields: [courseCategoryId], references: [id])
   courseCategoryId  Int?                @map("course_category_id")
   CourseLevel       CourseLevel?        @relation(fields: [courseLevelId], references: [id])
-  courseLevelId     Int?                @map("course_level_id")
-  Admin             Admin?              @relation(fields: [adminId], references: [id])
+  courseLevelId     Int?               @map("course_level_id")
+  Admin             Admin?            @relation(fields: [adminId], references: [id])
   adminId           Int?                @map("admin_id")
   courseContent     CourseContent[]
   courseTarget      CourseTarget[]
