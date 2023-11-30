@@ -8,7 +8,7 @@ const otpGenerator = require('otp-generator');
 const secretKey = process.env.JWT_KEY || "no_secret";
 
 module.exports = {
-signup: async (req, res) => {
+signup: async (req, res) => { // Endpoint SignUp (SignUp) 
     const { full_name, email, phone_number, password } = req.body;
         try {
             const data = await user.create({
