@@ -1,13 +1,17 @@
 const express = require("express");
 const router = express.Router();
 const controller = require("../../controllers/admin/course.controller");
-const multer = require("../../middlewares/multer")
-const multerLib = require('multer')()
+const multer = require("../../middlewares/multer");
+const multerLib = require("multer")();
+const checkToken = require("../../middlewares/checkToken");
 
-router.post("/course/category", multer.image.single('image_url'), controller.addCategory);
+router.post(
+  "/course/category",
+  multer.image.single("image_url"),
+  controller.addCategory
+);
 router.post("/course/level", controller.addLevel);
 router.post("/course/type", controller.addType);
-router.post("/course", controller.addCourse);
-
+router.post("/course", checkToken, controller.addCourse);
 
 module.exports = router;
