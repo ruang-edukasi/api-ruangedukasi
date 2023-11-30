@@ -23,7 +23,7 @@ model CourseType {
 model CourseCategory {
   id           Int      @id @default(autoincrement())
   categoryName String   @map("category_name")
-  imageUrl     String   @map("image_url")
+  imageUrl     String?  @map("image_url")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
   course       Course[]
