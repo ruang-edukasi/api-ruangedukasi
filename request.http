@@ -1,9 +1,0 @@
-POST http://localhost:3000/api/v1/user/signup
-Content-Type: application/json
-
-{
-    "fullName": "Taufik Doang",
-    "email": "princefatur9@gmail.com",
-    "phoneNumber": "+08567890987",
-    "password": "FAas1232"
-}
