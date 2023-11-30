@@ -1,20 +1,20 @@
 require("dotenv").config();
 
-const { admin } = require("../../models");
+const { user } = require("../../models");
 const utils = require("../../utils");
 const bcrypt = require("bcrypt");
 
 const list = async (req, res) => {
   try {
-    const jwtAdminId = res.sessionLogin.id; // From checktoken middlewares
-    const data = await admin.findFirst({
+    const jwtUserId = res.sessionLogin.id; // From checktoken middlewares
+    const data = await user.findFirst({
       where: {
-        id: jwtAdminId,
+        id: jwtUserId,
       },
     });
 
     delete data["password"]; // hide password field in response
-    return res.status(200).json({
+    return res.status(201).json({
       error: false,
       message: "Load profile successful",
       response: data,
@@ -30,10 +30,10 @@ const list = async (req, res) => {
 const profile = async (req, res) => {
   const { city, country } = req.body;
   try {
-    const jwtAdminId = res.sessionLogin.id; // From checktoken middlewares
-    const data = await admin.update({
+    const jwtUserId = res.sessionLogin.id; // From checktoken middlewares
+    const data = await user.update({
       where: {
-        id: jwtAdminId,
+        id: jwtUserId,
       },
       data: {
         city: city,
@@ -58,18 +58,18 @@ const profile = async (req, res) => {
 const changePassword = async (req, res) => {
   const { old_password, new_password, confirm_password } = req.body;
   try {
-    const jwtAdminId = res.sessionLogin.id; // From checktoken middlewares
-    const findAdmin = await admin.findUnique({
+    const jwtUserId = res.sessionLogin.id; // From checktoken middlewares
+    const findUser = await user.findUnique({
       where: {
-        id: jwtAdminId,
+        id: jwtUserId,
       },
     });
 
-    if (bcrypt.compareSync(old_password, findAdmin.password)) {
+    if (bcrypt.compareSync(old_password, findUser.password)) {
       if (new_password === confirm_password) {
-        const data = await admin.update({
+        const data = await user.update({
           where: {
-            id: jwtAdminId,
+            id: jwtUserId,
           },
           data: {
             password: await utils.encryptPassword(new_password),
@@ -77,7 +77,7 @@ const changePassword = async (req, res) => {
         });
 
         delete data["password"]; // hide password field in response
-        return res.status(201).json({
+        return res.status(200).json({
           error: false,
           message: "Change password successful",
           response: data,

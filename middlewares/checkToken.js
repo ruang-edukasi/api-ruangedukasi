@@ -16,7 +16,7 @@ const checkToken = (req, res, next) => {
     if (token.toLowerCase().startsWith("bearer ")) {
       token = token.slice("bearer".length).trim();
       const jwtPayload = jwt.verify(token, secretKey);
-      
+
       if (!jwtPayload) {
         return res.status(403).json({
           error: true,
@@ -24,17 +24,8 @@ const checkToken = (req, res, next) => {
         });
       }
 
-      // Menyimpan informasi user atau admin ke res berdasarkan role
-      if (jwtPayload.role === "admin") {
-        res.adminuser = jwtPayload;
-      } else if (jwtPayload.role === "user") {
-        res.user = jwtPayload;
-      } else {
-        return res.status(403).json({
-          error: true,
-          message: "Invalid role",
-        });
-      }
+      // Save login session to use as header authorization
+      res.sessionLogin = jwtPayload;
 
       next();
     } else {
