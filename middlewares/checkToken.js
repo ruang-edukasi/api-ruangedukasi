@@ -1,5 +1,4 @@
 require("dotenv").config();
-
 const jwt = require("jsonwebtoken");
 const secretKey = process.env.JWT_KEY || "no_secret";
 
@@ -9,15 +8,15 @@ const checkToken = (req, res, next) => {
   if (!token) {
     return res.status(403).json({
       error: true,
-      message: "Please provide a authorization token",
+      message: "Please provide an authorization token",
     });
   }
 
   try {
-    // Must have space after bearer
     if (token.toLowerCase().startsWith("bearer ")) {
       token = token.slice("bearer".length).trim();
       const jwtPayload = jwt.verify(token, secretKey);
+      
       if (!jwtPayload) {
         return res.status(403).json({
           error: true,
@@ -25,7 +24,18 @@ const checkToken = (req, res, next) => {
         });
       }
 
-      res.adminuser = jwtPayload;
+      // Menyimpan informasi user atau admin ke res berdasarkan role
+      if (jwtPayload.role === "admin") {
+        res.adminuser = jwtPayload;
+      } else if (jwtPayload.role === "user") {
+        res.user = jwtPayload;
+      } else {
+        return res.status(403).json({
+          error: true,
+          message: "Invalid role",
+        });
+      }
+
       next();
     } else {
       return res.status(403).json({
