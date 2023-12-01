@@ -6,6 +6,29 @@ const allCourse = async (req, res) => {
       orderBy: {
         id: "asc",
       },
+      select: {
+        id: true,
+        instructorName: true,
+        courseName: true,
+        courseDescription: true,
+        price: true,
+        rating: true,
+        CourseCategory: {
+          select: {
+            categoryName: true,
+          },
+        },
+        CourseType: {
+          select: {
+            typeName: true,
+          },
+        },
+        CourseLevel: {
+          select: {
+            levelName: true,
+          },
+        },
+      },
     });
 
     // Convert BigInt to string before sending the response
