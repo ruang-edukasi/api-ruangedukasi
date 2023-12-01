@@ -4,6 +4,9 @@ const {
   courseCategory,
   courseLevel,
   admin,
+  courseContent,
+  courseSkill,
+  courseTarget,
 } = require("../../models");
 const { imageKit } = require("../../utils");
 
@@ -89,7 +92,7 @@ module.exports = {
 
     try {
       //CHECK EXISTING ADMIN
-      const jwtAdminId = res.adminuser.id; // From checktoken middlewares
+      const jwtAdminId = res.sessionLogin.id; // From checktoken middlewares
       const existingUser = await admin.findUniqueOrThrow({
         where: { id: jwtAdminId },
       });
@@ -138,6 +141,116 @@ module.exports = {
       return res
         .status(500)
         .json({ error: true, message: "Internal Server Error" });
+    }
+  },
+
+  addCourseContent: async (req, res) => {
+    try {
+      const courseId = req.params.courseId; // courseId params from admin course.route
+      const jwtAdminId = res.sessionLogin.id; // From checktoken middlewares
+      const { content_title, video_link } = req.body;
+      const checkAdminExist = await admin.findUniqueOrThrow({
+        where: { id: jwtAdminId },
+      });
+
+      if (!checkAdminExist) {
+        return res
+          .status(404)
+          .json({ error: true, message: "Admin not found" });
+      }
+
+      const addCourseContent = await courseContent.create({
+        data: {
+          courseId: parseInt(courseId),
+          contentTitle: content_title,
+          videoLink: video_link,
+          status: "Active",
+        },
+      });
+
+      return res.status(201).json({
+        error: false,
+        message: "Course content successfuly created",
+        response: addCourseContent,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        error: true,
+        message: error,
+      });
+    }
+  },
+
+  addCourseSkill: async (req, res) => {
+    try {
+      const courseId = req.params.courseId; // courseId params from admin course.route
+      const jwtAdminId = res.sessionLogin.id; // From checktoken middlewares
+      const { skill_name } = req.body;
+      const checkAdminExist = await admin.findUniqueOrThrow({
+        where: { id: jwtAdminId },
+      });
+
+      if (!checkAdminExist) {
+        return res
+          .status(404)
+          .json({ error: true, message: "Admin not found" });
+      }
+
+      const addCourseSkill = await courseSkill.create({
+        data: {
+          courseId: parseInt(courseId),
+          skillName: skill_name,
+        },
+      });
+
+      return res.status(201).json({
+        error: false,
+        message: "Course skill successfuly created",
+        response: addCourseSkill,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        error: true,
+        message: error,
+      });
+    }
+  },
+
+  addCourseTarget: async (req, res) => {
+    try {
+      const courseId = req.params.courseId; // courseId params from admin course.route
+      const jwtAdminId = res.sessionLogin.id; // From checktoken middlewares
+      const { description } = req.body;
+      const checkAdminExist = await admin.findUniqueOrThrow({
+        where: { id: jwtAdminId },
+      });
+
+      if (!checkAdminExist) {
+        return res
+          .status(404)
+          .json({ error: true, message: "Admin not found" });
+      }
+
+      const addCourseTarget = await courseTarget.create({
+        data: {
+          courseId: parseInt(courseId),
+          description: description,
+        },
+      });
+
+      return res.status(201).json({
+        error: false,
+        message: "Course target successfuly created",
+        response: addCourseTarget,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        error: true,
+        message: error,
+      });
     }
   },
 };
