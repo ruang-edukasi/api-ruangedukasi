@@ -13,5 +13,12 @@ router.post(
 router.post("/course/level", controller.addLevel);
 router.post("/course/type", controller.addType);
 router.post("/course", checkToken, controller.addCourse);
+router.post(
+  "/course/content/:courseId",
+  checkToken,
+  controller.addCourseContent
+);
+router.post("/course/skill/:courseId", checkToken, controller.addCourseSkill);
+router.post("/course/target/:courseId", checkToken, controller.addCourseTarget);
 
 module.exports = router;

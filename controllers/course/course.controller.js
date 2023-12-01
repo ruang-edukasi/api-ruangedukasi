@@ -47,6 +47,18 @@ const detailCourse = async (req, res) => {
             status: true,
           },
         },
+        courseSkill: {
+          select: {
+            id: true,
+            skillName: true,
+          },
+        },
+        courseTarget: {
+          select: {
+            id: true,
+            description: true,
+          },
+        },
       },
     });
 
@@ -59,10 +71,14 @@ const detailCourse = async (req, res) => {
       });
     }
 
+    // Check length in courseContent
+    const courseContentLength = data.courseContent.length;
+
     // Convert BigInt to floeat before sending the response
     const serializedData = {
       ...data,
       price: data.price ? parseFloat(data.price) : null,
+      contentCount: parseInt(courseContentLength),
     };
 
     return res.status(200).json({
