@@ -52,7 +52,7 @@ module.exports = {
         subject: "Ruang Edukasi - Verification Email",
         html: `<p>
         To complete registration at <strong>Ruang Edukasi</strong> <br/><br/>
-        <a href="http://localhost:3000/api/v1/auth/user/verification-email/${encryptEmail}"
+        <a href="${process.env.HOST}/api/v1/auth/user/verification-email/${encryptEmail}"
         style="background-color: #4CAF50; color: white; padding: 10px; text-decoration:none; text-align: center;">Verification email</a>
         </p>`,
       };
