@@ -92,7 +92,7 @@ module.exports = {
       if (!findData) {
         return res.status(500).json({
           error: true,
-          message: "Link verification not valid",
+          message: "Email verification link not valid",
         });
       }
 
@@ -108,12 +108,13 @@ module.exports = {
 
       return res.status(200).json({
         error: false,
-        message:
-          "Your email successfull verified.\nNow you can login with your email.",
+        message: "Your email successful verified.",
       });
     } catch (error) {
-      console.log(error);
-      return res.render("error");
+      return res.status(500).json({
+        error: true,
+        message: error,
+      });
     }
   },
 
