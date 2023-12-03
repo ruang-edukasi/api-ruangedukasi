@@ -39,17 +39,26 @@ const searchCourse = async (req, res) => {
     });
 
     // Convert BigInt to string before sending the response
-    const serializedData = data.map((course) => ({
+    const responseData = data.map((course) => ({
       ...course,
       price: course.price ? parseFloat(course.price) : null,
+      courseType: course.CourseType.typeName,
+      courseCategory: course.CourseCategory.categoryName,
+      courseLevel: course.CourseLevel.levelName,
     }));
 
-    const serializedDataLength = serializedData.length;
-    if (serializedDataLength !== 0) {
+    responseData.forEach((course) => {
+      delete course.CourseType;
+      delete course.CourseCategory;
+      delete course.CourseLevel;
+    });
+
+    const responseDataLength = responseData.length;
+    if (responseDataLength !== 0) {
       return res.status(200).json({
         error: false,
         message: `Load course with query "${courseSearchParams}" successful`,
-        response: serializedData,
+        response: responseData,
       });
     }
 
