@@ -9,7 +9,7 @@ const categoryRouter = require("./course/category.route");
 const levelRouter = require("./course/level.route");
 const typeRouter = require("./course/type.route");
 const courseRouter = require("./course/course.route");
-const { user } = require("../models");
+const searchCourseRouter = require("./course/search.route");
 
 // Default router
 router.get("/", (req, res) => {
@@ -34,5 +34,6 @@ router.use("/category", categoryRouter);
 router.use("/level", levelRouter);
 router.use("/type", typeRouter);
 router.use("/course", courseRouter);
+router.use("/search", searchCourseRouter);
 
 module.exports = router;

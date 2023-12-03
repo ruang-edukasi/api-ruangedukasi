@@ -4,5 +4,6 @@ const controller = require("../../controllers/admin/auth.controller");
 
 router.post("/register", controller.register);
 router.post("/login", controller.login);
+router.get("/verification-email/:key", controller.verificationEmail);
 
 module.exports = router;

@@ -1,4 +1,10 @@
-const { course, courseContent } = require("../../models");
+const {
+  course,
+  courseContent,
+  courseType,
+  courseCategory,
+  courseLevel,
+} = require("../../models");
 
 const allCourse = async (req, res) => {
   try {
@@ -6,18 +12,50 @@ const allCourse = async (req, res) => {
       orderBy: {
         id: "asc",
       },
+      select: {
+        id: true,
+        instructorName: true,
+        courseName: true,
+        courseDescription: true,
+        price: true,
+        rating: true,
+        CourseCategory: {
+          select: {
+            categoryName: true,
+          },
+        },
+        CourseType: {
+          select: {
+            typeName: true,
+          },
+        },
+        CourseLevel: {
+          select: {
+            levelName: true,
+          },
+        },
+      },
     });
 
     // Convert BigInt to string before sending the response
-    const serializedData = data.map((course) => ({
+    const responseData = data.map((course) => ({
       ...course,
       price: course.price ? parseFloat(course.price) : null,
+      courseType: course.CourseType.typeName,
+      courseCategory: course.CourseCategory.categoryName,
+      courseLevel: course.CourseLevel.levelName,
     }));
+
+    responseData.forEach((course) => {
+      delete course.CourseType;
+      delete course.CourseCategory;
+      delete course.CourseLevel;
+    });
 
     return res.status(200).json({
       error: false,
       message: "Load course successful",
-      response: serializedData,
+      response: responseData,
     });
   } catch (error) {
     console.log(error);
@@ -62,6 +100,35 @@ const detailCourse = async (req, res) => {
       },
     });
 
+    // Check courseTypeId
+    const valueTypeId = data.courseTypeId;
+    const checkTypeName = await courseType.findFirst({
+      where: {
+        id: valueTypeId,
+      },
+    });
+
+    // Check courseCategoryId
+    const valueCategoryId = data.courseCategoryId;
+    const checkCategoryName = await courseCategory.findFirst({
+      where: {
+        id: valueCategoryId,
+      },
+    });
+
+    // Check courseLevelId
+    const valueLevelId = data.courseLevelId;
+    const checkLevelName = await courseLevel.findFirst({
+      where: {
+        id: valueLevelId,
+      },
+    });
+
+    delete data["courseTypeId"];
+    delete data["courseCategoryId"];
+    delete data["courseLevelId"];
+    delete data["adminId"];
+
     if (!data) {
       // Handle where no course is found with the given courseId
       return res.status(404).json({
@@ -74,17 +141,20 @@ const detailCourse = async (req, res) => {
     // Check length in courseContent
     const courseContentLength = data.courseContent.length;
 
-    // Convert BigInt to floeat before sending the response
-    const serializedData = {
+    // Convert BigInt to float before sending the response
+    const responseData = {
       ...data,
       price: data.price ? parseFloat(data.price) : null,
       contentCount: parseInt(courseContentLength),
+      courseType: checkTypeName.typeName,
+      courseCategory: checkCategoryName.categoryName,
+      courseLevel: checkLevelName.levelName,
     };
 
     return res.status(200).json({
       error: false,
       message: `Load course with id #${courseId} successful`,
-      response: serializedData,
+      response: responseData,
     });
   } catch (error) {
     console.log(error);
