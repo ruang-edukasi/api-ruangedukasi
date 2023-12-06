@@ -216,7 +216,7 @@ module.exports = {
           message: "Registration successful. Please check your email",
           response: {
             verifId: data.emailToken,
-            email: data.email,
+            verifEmail: data.email,
           },
         });
       });
