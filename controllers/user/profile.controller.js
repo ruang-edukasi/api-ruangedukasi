@@ -102,8 +102,61 @@ const changePassword = async (req, res) => {
   }
 };
 
+const logout = (req, res) => {
+  try {
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({
+          error: true,
+          message: "Logout failed",
+        });
+      }
+      res.status(200).json({
+        error: false,
+        message: "Logout successful",
+      });
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      error: true,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
+
+const changeAvatar = async (req, res) => {
+  try {
+    const jwtUserId = res.sessionLogin.id; // From checktoken middlewares
+    const { newAvatarUrl } = req.body; 
+
+    // Implement logic update avatar URL di database
+    await user.update({
+      where: {
+        id: jwtUserId,
+      },
+      data: {
+        imageUrl: newAvatarUrl,
+      },
+    });
+
+    return res.status(200).json({
+      error: false,
+      message: "Avatar updated successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      error: true,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
+
 module.exports = {
   list,
   profile,
   changePassword,
+  logout,
+  changeAvatar,
 };
