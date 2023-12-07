@@ -29,6 +29,7 @@ const list = async (req, res) => {
 
 const profile = async (req, res) => {
   const { full_name, phone_number, city, country } = req.body;
+  const allowedImageTypes = ["image/jpeg", "image/png", "image/gif"];
   try {
     const jwtAdminId = res.sessionLogin.id; // From checktoken middlewares
 
@@ -40,20 +41,29 @@ const profile = async (req, res) => {
     };
 
     if (req.file) {
-      const fileToString = req.file.buffer.toString("base64");
-      const currentDate = new Date();
-      const formattedDate = currentDate
-        .toISOString()
-        .split("T")[0]
-        .replace(/-/g, "");
-      const fileName = `image_${formattedDate}`;
+      try {
+        // Check filetype upload
+        if (!allowedImageTypes.includes(req.file.mimetype)) {
+          return res.status(400).json({
+            error: true,
+            message:
+              "Invalid file type. Only JPEG, PNG, and GIF images are allowed.",
+          });
+        }
 
-      const uploadFile = await utils.imageKit.upload({
-        fileName: fileName,
-        file: fileToString,
-      });
+        const fileTostring = req.file.buffer.toString("base64");
+        const uploadFile = await utils.imageKit.upload({
+          fileName: req.file.originalname,
+          file: fileTostring,
+        });
 
-      updatedData.imageUrl = uploadFile.url;
+        updatedData.imageUrl = uploadFile.url;
+      } catch (error) {
+        return res.status(500).json({
+          error: true,
+          message: "Error uploading image to server",
+        });
+      }
     }
 
     if (Object.keys(updatedData).length === 0) {

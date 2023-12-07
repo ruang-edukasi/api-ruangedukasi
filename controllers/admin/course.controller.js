@@ -1,427 +1,464 @@
 const {
-    course,
-    courseType,
-    courseCategory,
-    courseLevel,
-    admin,
-    courseContent,
-    courseSkill,
-    courseTarget,
-    courseCoupon,
+  course,
+  courseType,
+  courseCategory,
+  courseLevel,
+  admin,
+  courseContent,
+  courseSkill,
+  courseTarget,
+  courseCoupon,
 } = require("../../models");
 const { imageKit } = require("../../utils");
 
 module.exports = {
-    addCategory: async(req, res) => {
-        const { category_name } = req.body;
+  addCategory: async (req, res) => {
+    const { category_name } = req.body;
+    try {
+      const allowedImageTypes = ["image/jpeg", "image/png", "image/gif"];
+
+      let insertData = {
+        categoryName: category_name,
+      };
+
+      if (req.file) {
         try {
-            const fileTostring = req.file.buffer.toString('base64');
+          // Check filetype upload
+          if (!allowedImageTypes.includes(req.file.mimetype)) {
+            return res.status(400).json({
+              error: true,
+              message:
+                "Invalid file type. Only JPEG, PNG, and GIF images are allowed.",
+            });
+          }
 
-            const uploadFile = await imageKit.upload({
-                fileName: req.file.originalname,
-                file: fileTostring
-            });
-            const addCategory = await courseCategory.create({
-                data: {
-                    categoryName: category_name,
-                    imageUrl: uploadFile.url
-                },
-            });
-            return res.status(201).json({
-                error: false,
-                message: "Category Create Succesfully",
-                response: addCategory,
-            });
+          const fileTostring = req.file.buffer.toString("base64");
+          const uploadFile = await imageKit.upload({
+            fileName: req.file.originalname,
+            file: fileTostring,
+          });
+
+          updatedData.imageUrl = uploadFile.url;
         } catch (error) {
-            console.log(error);
-            return res
-                .status(500)
-                .json({ error: true, message: "Internal Server Error" });
+          return res.status(500).json({
+            error: true,
+            message: "Error uploading image to server",
+          });
         }
-    },
+      }
 
-    updateCategory: async(req, res) => {
+      const addCategory = await courseCategory.create({
+        data: insertData,
+      });
+      return res.status(201).json({
+        error: false,
+        message: "Category Create Succesfully",
+        response: addCategory,
+      });
+    } catch (error) {
+      console.log(error);
+      return res
+        .status(500)
+        .json({ error: true, message: "Internal Server Error" });
+    }
+  },
+
+  updateCategory: async (req, res) => {
+    try {
+      const allowedImageTypes = ["image/jpeg", "image/png", "image/gif"];
+
+      const { categoryId } = req.params;
+      const { category_name } = req.body;
+      const readCategory = await courseCategory.findUnique({
+        where: {
+          id: parseInt(categoryId),
+        },
+      });
+
+      if (!readCategory) {
+        return res.status(404).json({
+          success: false,
+          error: "Category not found",
+        });
+      }
+
+      let updatedData = {};
+
+      if (category_name) {
+        updatedData.categoryName = category_name;
+      }
+
+      if (req.file) {
         try {
-            const { categoryId } = req.params;
-            const readCategory = await courseCategory.findUnique({
-                where: {
-                    id: parseInt(categoryId),
-                },
+          // Check filetype upload
+          if (!allowedImageTypes.includes(req.file.mimetype)) {
+            return res.status(400).json({
+              error: true,
+              message:
+                "Invalid file type. Only JPEG, PNG, and GIF images are allowed.",
             });
+          }
 
-            if (!readCategory) {
-                return res.status(404).json({
-                    success: false,
-                    error: "Category not found",
-                });
-            }
+          const fileTostring = req.file.buffer.toString("base64");
+          const uploadFile = await imageKit.upload({
+            fileName: req.file.originalname,
+            file: fileTostring,
+          });
 
-            let updatedData = {};
-
-            if (req.body.categoryName) {
-                updatedData.categoryName = req.body.categoryName;
-            }
-
-            if (req.file) {
-                const fileToString = req.file.buffer.toString('base64');
-                const currentDate = new Date();
-                const formattedDate = currentDate.toISOString().split('T')[0].replace(/-/g, '');
-                const fileName = `image_${ formattedDate }`;
-
-                const uploadFile = await imageKit.upload({
-                    fileName: fileName,
-                    file: fileToString,
-                });
-
-                updatedData.imageUrl = uploadFile.url;
-            }
-
-            if (Object.keys(updatedData).length === 0) {
-                return res.json({
-                    success: true,
-                    message: "No changes provided for update.",
-                });
-            }
-
-            const updateCategory = await courseCategory.update({
-                where: {
-                    id: parseInt(categoryId),
-                },
-                data: updatedData
-            });
-
-            return res.json({
-                success: true,
-                message: "Category edited Succesfully",
-                response: updateCategory,
-            });
+          updatedData.imageUrl = uploadFile.url;
         } catch (error) {
-            console.error("Error updating payment method: ", error);
-            res.status(500).json({
-                success: false,
-                error: "Internal Server Error",
-            });      
+          return res.status(500).json({
+            error: true,
+            message: "Error uploading image to server",
+          });
         }
+      }
 
-    },
+      if (Object.keys(updatedData).length === 0) {
+        return res.json({
+          error: true,
+          message: "No changes provided for update.",
+        });
+      }
 
-    addLevel: async(req, res) => {
-        const { level_name } = req.body;
-        try {
-            const addLevel = await courseLevel.create({
-                data: {
-                    levelName: level_name,
-                },
-            });
-            return res.status(201).json({
-                error: false,
-                message: "Level Create Succesfully",
-                response: addLevel,
-            });
-        } catch (error) {
-            console.log(error);
-            return res
-                .status(500)
-                .json({ error: true, message: "Internal Server Error" });
-        }
-    },
-    updateLevel: async(req, res) => {
-        try {
-            const { levelId } = req.params;
-            const { level_name } = req.body;
-            if (!(level_name)) {
-                res.status(400).send("Level is Missing");
-                return
-            }
+      const updateCategory = await courseCategory.update({
+        where: {
+          id: parseInt(categoryId),
+        },
+        data: updatedData,
+      });
 
-            const updateLevel = await courseLevel.update({
-                where: {
-                    id: parseInt(levelId)
-                },
-                data: {
-                    levelName: level_name,
-                }
-            })
-            return res.status(201).json({
-                error: false,
-                message: "Level edited Succesfully",
-                response: updateLevel,
-            });
-        } catch (error) {
-            console.log(error);
-            return res
-                .status(500)
-                .json({ error: true, message: "Internal Server Error" });
-        }
-    },
-    addType: async(req, res) => {
-        const { type_name } = req.body;
-        try {
-            const addType = await courseType.create({
-                data: {
-                    typeName: type_name,
-                },
-            });
-            return res.status(201).json({
-                error: false,
-                message: "Type Create Succesfully",
-                response: addType,
-            });
-        } catch (error) {
-            console.log(error);
-            return res
-                .status(500)
-                .json({ error: true, message: "Internal Server Error" });
-        }
-    },
-    updateType: async(req, res) => {
-        try {
-            const { typeId } = req.params;
-            const { type_name } = req.body;
-            if (!(type_name)) {
-                res.status(400).send("Type is Missing");
-                return
-            }
+      return res.status(201).json({
+        success: true,
+        message: "Category edited Succesfully",
+        response: updateCategory,
+      });
+    } catch (error) {
+      console.error("Error updating payment method: ", error);
+      res.status(500).json({
+        success: false,
+        error: "Internal Server Error",
+      });
+    }
+  },
 
-            const updateType = await courseType.update({
-                where: {
-                    id: parseInt(typeId)
-                },
-                data: {
-                    typeName: type_name,
-                }
-            })
-            return res.status(201).json({
-                error: false,
-                message: "Course Type edited Succesfully",
-                response: updateType,
-            });
-        } catch (error) {
-            console.log(error);
-            return res
-                .status(500)
-                .json({ error: true, message: "Internal Server Error" });
-        }
-    },
-    addCourse: async(req, res) => {
-        const {
-            instructor_name,
-            course_name,
-            course_description,
-            price,
-            rating,
-            telegram_link,
-            whatsapp_link,
-            student_count,
-            video_count,
-            reading_count,
-            content_count,
-            course_type_id,
-            course_category_id,
-            course_level_id,
-        } = req.body;
+  addLevel: async (req, res) => {
+    const { level_name } = req.body;
+    try {
+      const addLevel = await courseLevel.create({
+        data: {
+          levelName: level_name,
+        },
+      });
+      return res.status(201).json({
+        error: false,
+        message: "Level Create Succesfully",
+        response: addLevel,
+      });
+    } catch (error) {
+      console.log(error);
+      return res
+        .status(500)
+        .json({ error: true, message: "Internal Server Error" });
+    }
+  },
+  updateLevel: async (req, res) => {
+    try {
+      const { levelId } = req.params;
+      const { level_name } = req.body;
+      if (!level_name) {
+        res.status(400).send("Level is Missing");
+        return;
+      }
 
-        try {
-            //CHECK EXISTING ADMIN
-            const jwtAdminId = res.sessionLogin.id; // From checktoken middlewares
-            const existingUser = await admin.findUniqueOrThrow({
-                where: { id: jwtAdminId },
-            });
+      const updateLevel = await courseLevel.update({
+        where: {
+          id: parseInt(levelId),
+        },
+        data: {
+          levelName: level_name,
+        },
+      });
+      return res.status(201).json({
+        error: false,
+        message: "Level edited Succesfully",
+        response: updateLevel,
+      });
+    } catch (error) {
+      console.log(error);
+      return res
+        .status(500)
+        .json({ error: true, message: "Internal Server Error" });
+    }
+  },
+  addType: async (req, res) => {
+    const { type_name } = req.body;
+    try {
+      const addType = await courseType.create({
+        data: {
+          typeName: type_name,
+        },
+      });
+      return res.status(201).json({
+        error: false,
+        message: "Type Create Succesfully",
+        response: addType,
+      });
+    } catch (error) {
+      console.log(error);
+      return res
+        .status(500)
+        .json({ error: true, message: "Internal Server Error" });
+    }
+  },
+  updateType: async (req, res) => {
+    try {
+      const { typeId } = req.params;
+      const { type_name } = req.body;
+      if (!type_name) {
+        res.status(400).send("Type is Missing");
+        return;
+      }
 
-            if (!existingUser) {
-                return res
-                    .status(404)
-                    .json({ error: true, message: "Admin Not Found" });
-            }
-            const addCourse = await course.create({
-                data: {
-                    instructorName: instructor_name,
-                    courseName: course_name,
-                    courseDescription: course_description,
-                    price: BigInt(price),
-                    rating: parseInt(rating),
-                    telegramLink: telegram_link,
-                    whatsappLink: whatsapp_link,
-                    studentCount: student_count,
-                    videoCount: video_count,
-                    readingCount: reading_count,
-                    contentCount: content_count,
+      const updateType = await courseType.update({
+        where: {
+          id: parseInt(typeId),
+        },
+        data: {
+          typeName: type_name,
+        },
+      });
+      return res.status(201).json({
+        error: false,
+        message: "Course Type edited Succesfully",
+        response: updateType,
+      });
+    } catch (error) {
+      console.log(error);
+      return res
+        .status(500)
+        .json({ error: true, message: "Internal Server Error" });
+    }
+  },
+  addCourse: async (req, res) => {
+    const {
+      instructor_name,
+      course_name,
+      course_description,
+      price,
+      rating,
+      telegram_link,
+      whatsapp_link,
+      student_count,
+      video_count,
+      reading_count,
+      content_count,
+      course_type_id,
+      course_category_id,
+      course_level_id,
+    } = req.body;
 
-                    CourseType: {
-                        connect: { id: parseInt(course_type_id) },
-                    },
-                    CourseLevel: {
-                        connect: { id: parseInt(course_level_id) },
-                    },
-                    CourseCategory: {
-                        connect: { id: parseInt(course_category_id) },
-                    },
-                    Admin: {
-                        connect: { id: jwtAdminId },
-                    },
-                },
-            });
-            const priceInt = parseInt(price);
-            return res.status(201).json({
-                error: false,
-                message: "Course Create Succesfully",
-                response: {...addCourse, price: priceInt },
-            });
-        } catch (error) {
-            console.log(error);
-            return res
-                .status(500)
-                .json({ error: true, message: "Internal Server Error" });
-        }
-    },
+    try {
+      //CHECK EXISTING ADMIN
+      const jwtAdminId = res.sessionLogin.id; // From checktoken middlewares
+      const existingUser = await admin.findUniqueOrThrow({
+        where: { id: jwtAdminId },
+      });
 
-    addCourseContent: async(req, res) => {
-        try {
-            const courseId = req.params.courseId; // courseId params from admin course.route
-            const jwtAdminId = res.sessionLogin.id; // From checktoken middlewares
-            const { content_title, video_link } = req.body;
-            const checkAdminExist = await admin.findUniqueOrThrow({
-                where: { id: jwtAdminId },
-            });
+      if (!existingUser) {
+        return res
+          .status(404)
+          .json({ error: true, message: "Admin Not Found" });
+      }
+      const addCourse = await course.create({
+        data: {
+          instructorName: instructor_name,
+          courseName: course_name,
+          courseDescription: course_description,
+          price: BigInt(price),
+          rating: parseInt(rating),
+          telegramLink: telegram_link,
+          whatsappLink: whatsapp_link,
+          studentCount: student_count,
+          videoCount: video_count,
+          readingCount: reading_count,
+          contentCount: content_count,
 
-            if (!checkAdminExist) {
-                return res
-                    .status(404)
-                    .json({ error: true, message: "Admin not found" });
-            }
+          CourseType: {
+            connect: { id: parseInt(course_type_id) },
+          },
+          CourseLevel: {
+            connect: { id: parseInt(course_level_id) },
+          },
+          CourseCategory: {
+            connect: { id: parseInt(course_category_id) },
+          },
+          Admin: {
+            connect: { id: jwtAdminId },
+          },
+        },
+      });
+      const priceInt = parseInt(price);
+      return res.status(201).json({
+        error: false,
+        message: "Course Create Succesfully",
+        response: { ...addCourse, price: priceInt },
+      });
+    } catch (error) {
+      console.log(error);
+      return res
+        .status(500)
+        .json({ error: true, message: "Internal Server Error" });
+    }
+  },
 
-            const addCourseContent = await courseContent.create({
-                data: {
-                    courseId: parseInt(courseId),
-                    contentTitle: content_title,
-                    videoLink: video_link,
-                    status: "Active",
-                },
-            });
+  addCourseContent: async (req, res) => {
+    try {
+      const courseId = req.params.courseId; // courseId params from admin course.route
+      const jwtAdminId = res.sessionLogin.id; // From checktoken middlewares
+      const { content_title, video_link } = req.body;
+      const checkAdminExist = await admin.findUniqueOrThrow({
+        where: { id: jwtAdminId },
+      });
 
-            return res.status(201).json({
-                error: false,
-                message: "Course content successfuly created",
-                response: addCourseContent,
-            });
-        } catch (error) {
-            console.log(error);
-            return res.status(500).json({
-                error: true,
-                message: error,
-            });
-        }
-    },
+      if (!checkAdminExist) {
+        return res
+          .status(404)
+          .json({ error: true, message: "Admin not found" });
+      }
 
-    addCourseSkill: async(req, res) => {
-        try {
-            const courseId = req.params.courseId; // courseId params from admin course.route
-            const jwtAdminId = res.sessionLogin.id; // From checktoken middlewares
-            const { skill_name } = req.body;
-            const checkAdminExist = await admin.findUniqueOrThrow({
-                where: { id: jwtAdminId },
-            });
+      const addCourseContent = await courseContent.create({
+        data: {
+          courseId: parseInt(courseId),
+          contentTitle: content_title,
+          videoLink: video_link,
+          status: "Active",
+        },
+      });
 
-            if (!checkAdminExist) {
-                return res
-                    .status(404)
-                    .json({ error: true, message: "Admin not found" });
-            }
+      return res.status(201).json({
+        error: false,
+        message: "Course content successfuly created",
+        response: addCourseContent,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        error: true,
+        message: error,
+      });
+    }
+  },
 
-            const addCourseSkill = await courseSkill.create({
-                data: {
-                    courseId: parseInt(courseId),
-                    skillName: skill_name,
-                },
-            });
+  addCourseSkill: async (req, res) => {
+    try {
+      const courseId = req.params.courseId; // courseId params from admin course.route
+      const jwtAdminId = res.sessionLogin.id; // From checktoken middlewares
+      const { skill_name } = req.body;
+      const checkAdminExist = await admin.findUniqueOrThrow({
+        where: { id: jwtAdminId },
+      });
 
-            return res.status(201).json({
-                error: false,
-                message: "Course skill successfuly created",
-                response: addCourseSkill,
-            });
-        } catch (error) {
-            console.log(error);
-            return res.status(500).json({
-                error: true,
-                message: error,
-            });
-        }
-    },
+      if (!checkAdminExist) {
+        return res
+          .status(404)
+          .json({ error: true, message: "Admin not found" });
+      }
 
-    addCourseTarget: async(req, res) => {
-        try {
-            const courseId = req.params.courseId; // courseId params from admin course.route
-            const jwtAdminId = res.sessionLogin.id; // From checktoken middlewares
-            const { description } = req.body;
-            const checkAdminExist = await admin.findUniqueOrThrow({
-                where: { id: jwtAdminId },
-            });
+      const addCourseSkill = await courseSkill.create({
+        data: {
+          courseId: parseInt(courseId),
+          skillName: skill_name,
+        },
+      });
 
-            if (!checkAdminExist) {
-                return res
-                    .status(404)
-                    .json({ error: true, message: "Admin not found" });
-            }
+      return res.status(201).json({
+        error: false,
+        message: "Course skill successfuly created",
+        response: addCourseSkill,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        error: true,
+        message: error,
+      });
+    }
+  },
 
-            const addCourseTarget = await courseTarget.create({
-                data: {
-                    courseId: parseInt(courseId),
-                    description: description,
-                },
-            });
+  addCourseTarget: async (req, res) => {
+    try {
+      const courseId = req.params.courseId; // courseId params from admin course.route
+      const jwtAdminId = res.sessionLogin.id; // From checktoken middlewares
+      const { description } = req.body;
+      const checkAdminExist = await admin.findUniqueOrThrow({
+        where: { id: jwtAdminId },
+      });
 
-            return res.status(201).json({
-                error: false,
-                message: "Course target successfuly created",
-                response: addCourseTarget,
-            });
-        } catch (error) {
-            console.log(error);
-            return res.status(500).json({
-                error: true,
-                message: error,
-            });
-        }
-    },
+      if (!checkAdminExist) {
+        return res
+          .status(404)
+          .json({ error: true, message: "Admin not found" });
+      }
 
-    addCourseCoupon: async(req, res) => {
-        try {
-            const courseId = req.params.courseId; // courseId params from admin course.route
-            const jwtAdminId = res.sessionLogin.id; // From checktoken middlewares
-            const { coupon_name, coupon_code, discount_percent } = req.body;
-            const checkAdminExist = await admin.findUniqueOrThrow({
-                where: { id: jwtAdminId },
-            });
+      const addCourseTarget = await courseTarget.create({
+        data: {
+          courseId: parseInt(courseId),
+          description: description,
+        },
+      });
 
-            if (!checkAdminExist) {
-                return res
-                    .status(404)
-                    .json({ error: true, message: "Admin not found" });
-            }
+      return res.status(201).json({
+        error: false,
+        message: "Course target successfuly created",
+        response: addCourseTarget,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        error: true,
+        message: error,
+      });
+    }
+  },
 
-            const addCourseCoupon = await courseCoupon.create({
-                data: {
-                    courseId: parseInt(courseId),
-                    couponName: coupon_name,
-                    couponCode: coupon_code,
-                    discountPercent: discount_percent,
-                    validUntil: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-                    status: "Active",
-                },
-            });
+  addCourseCoupon: async (req, res) => {
+    try {
+      const courseId = req.params.courseId; // courseId params from admin course.route
+      const jwtAdminId = res.sessionLogin.id; // From checktoken middlewares
+      const { coupon_name, coupon_code, discount_percent } = req.body;
+      const checkAdminExist = await admin.findUniqueOrThrow({
+        where: { id: jwtAdminId },
+      });
 
-            return res.status(201).json({
-                error: false,
-                message: "Course coupon successfuly created",
-                response: addCourseCoupon,
-            });
-        } catch (error) {
-            console.log(error);
-            return res.status(500).json({
-                error: true,
-                message: error,
-            });
-        }
-    },
+      if (!checkAdminExist) {
+        return res
+          .status(404)
+          .json({ error: true, message: "Admin not found" });
+      }
+
+      const addCourseCoupon = await courseCoupon.create({
+        data: {
+          courseId: parseInt(courseId),
+          couponName: coupon_name,
+          couponCode: coupon_code,
+          discountPercent: discount_percent,
+          validUntil: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+          status: "Active",
+        },
+      });
+
+      return res.status(201).json({
+        error: false,
+        message: "Course coupon successfuly created",
+        response: addCourseCoupon,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        error: true,
+        message: error,
+      });
+    }
+  },
 };
