@@ -28,17 +28,46 @@ const list = async (req, res) => {
 };
 
 const profile = async (req, res) => {
-  const { city, country } = req.body;
+  const { full_name, phone_number, city, country } = req.body;
   try {
     const jwtUserId = res.sessionLogin.id; // From checktoken middlewares
+
+    let updatedData = {
+      fullName: full_name,
+      phoneNumber: phone_number,
+      city: city,
+      country: country,
+    };
+
+    if (req.file) {
+      const fileToString = req.file.buffer.toString("base64");
+      const currentDate = new Date();
+      const formattedDate = currentDate
+        .toISOString()
+        .split("T")[0]
+        .replace(/-/g, "");
+      const fileName = `image_${formattedDate}`;
+
+      const uploadFile = await utils.imageKit.upload({
+        fileName: fileName,
+        file: fileToString,
+      });
+
+      updatedData.imageUrl = uploadFile.url;
+    }
+
+    if (Object.keys(updatedData).length === 0) {
+      return res.json({
+        success: true,
+        message: "No changes provided for update.",
+      });
+    }
+
     const data = await user.update({
       where: {
-        id: jwtUserId,
+        id: parseInt(jwtUserId),
       },
-      data: {
-        city: city,
-        country: country,
-      },
+      data: updatedData,
     });
 
     delete data["password"]; // hide password field in response
@@ -128,7 +157,7 @@ const logout = (req, res) => {
 const changeAvatar = async (req, res) => {
   try {
     const jwtUserId = res.sessionLogin.id; // From checktoken middlewares
-    const { newAvatarUrl } = req.body; 
+    const { newAvatarUrl } = req.body;
 
     // Implement logic update avatar URL di database
     await user.update({
