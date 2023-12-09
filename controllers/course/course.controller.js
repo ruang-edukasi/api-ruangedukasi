@@ -100,6 +100,21 @@ const detailCourse = async (req, res) => {
             description: true,
           },
         },
+        courseReview: {
+          select: {
+            id: true,
+            userId: true,
+            review: true,
+            rating: true,
+            createdAt: true,
+            updatedAt: true,
+            User: {
+              select: {
+                fullName: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -147,12 +162,24 @@ const detailCourse = async (req, res) => {
     // Convert BigInt to float before sending the response
     const responseData = {
       ...data,
+      rating: data.rating ? parseFloat(data.rating.toFixed(2)) : null,
       price: data.price ? parseFloat(data.price) : null,
       contentCount: parseInt(courseContentLength),
+      review: data.courseReview.map((courseReview) => ({
+        id: courseReview.id,
+        userId: courseReview.userId,
+        fullName: courseReview.User.fullName,
+        review: courseReview.review,
+        rating: courseReview.rating,
+        createdAt: courseReview.createdAt,
+        updatedAt: courseReview.updatedAt,
+      })),
       courseType: checkTypeName.typeName,
       courseCategory: checkCategoryName.categoryName,
       courseLevel: checkLevelName.levelName,
     };
+
+    delete responseData["courseReview"];
 
     return res.status(200).json({
       error: false,
