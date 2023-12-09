@@ -1,13 +1,13 @@
-const { CourseReview } = require("../../models");
+const { courseReview, course } = require("../../models");
 
-const ReviewController = {
-  getCourseReviews: async (req, res) => {   // Endpoint untuk mendapatkan review dan rating suatu kursus
+module.exports = {
+  getCourseReviews: async (req, res) => {
     try {
-      const courseId = req.params.courseId; // ID kursus dari parameter URL
+      const courseId = req.params.courseId;
 
-      const courseReviews = await CourseReview.findMany({ // Ambil review dan rating untuk kursus tertentu dari database
+      const data = await courseReview.findMany({
         where: {
-          courseId: courseId,
+          courseId: parseInt(courseId),
         },
         include: {
           User: {
@@ -20,14 +20,21 @@ const ReviewController = {
         },
       });
 
-      res.status(200).json({
+      if (data.length == 0) {
+        return res.status(200).json({
+          error: false,
+          message: "Review and rating data not available for this course",
+        });
+      }
+
+      return res.status(200).json({
         error: false,
-        message: "Course reviews retrieved successfully",
-        data: courseReviews,
+        message: "Load course reviews successfully",
+        response: data,
       });
     } catch (error) {
-      console.error("Error getting course reviews:", error);
-      res.status(500).json({
+      console.error("Error:", error);
+      return res.status(500).json({
         error: true,
         message: "Internal Server Error",
       });
@@ -36,32 +43,94 @@ const ReviewController = {
 
   addCourseReview: async (req, res) => {
     try {
-      const userId = req.user.id; // ID pengguna dari data otentikasi
-      const courseId = req.params.courseId; // ID kursus dari parameter URL
+      const jwtUserId = res.sessionLogin.id; // From checktoken middlewares
+      const courseId = parseInt(req.params.courseId);
       const { rating, review } = req.body;
 
-      const newReview = await CourseReview.create({ // Tambahkan review ke database
+      // Check already review
+      const checkAlreadyReview = await courseReview.count({
+        where: {
+          userId: jwtUserId,
+        },
+      });
+
+      if (checkAlreadyReview != 0) {
+        return res.status(200).json({
+          error: false,
+          message: "Already reviewed and rated in this course",
+        });
+      }
+
+      // Check rating now in course table
+      const checkRatingCourse = await course.findFirst({
+        where: {
+          id: courseId,
+        },
+        select: {
+          rating: true,
+        },
+      });
+
+      // Check sum rating in review table
+      const checkSumRating = await courseReview.aggregate({
+        _sum: {
+          rating: true,
+        },
+        where: {
+          courseId: courseId,
+        },
+      });
+      const totalRating = checkSumRating._sum.rating;
+
+      // Check count review in review table
+      const checkCountReview = await courseReview.count({
+        where: {
+          courseId: courseId,
+        },
+      });
+
+      const data = await courseReview.create({
         data: {
           courseId: courseId,
-          userId: userId,
-          rating: rating,
+          userId: jwtUserId,
+          rating: parseInt(rating),
           review: review,
         },
       });
 
-      res.status(201).json({
+      const nowRating = checkRatingCourse.rating;
+      const newRating = data.rating;
+
+      if (nowRating == null || nowRating == 0) {
+        averageRating = newRating;
+      } else {
+        averageRating = totalRating / checkCountReview;
+      }
+
+      // Format one digit after decimal
+      averageRating = parseFloat(averageRating.toFixed(2));
+
+      // Update rating in course table
+      await course.update({
+        where: {
+          id: courseId,
+        },
+        data: {
+          rating: averageRating,
+        },
+      });
+
+      return res.status(201).json({
         error: false,
         message: "Review and rating added successfully",
-        data: newReview,
+        response: data,
       });
     } catch (error) {
-      console.error("Error adding course review and rating:", error);
-      res.status(500).json({
+      console.error("Error:", error);
+      return res.status(500).json({
         error: true,
         message: "Internal Server Error",
       });
     }
   },
 };
-
-module.exports = ReviewController;
