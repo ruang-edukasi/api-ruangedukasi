@@ -17,6 +17,7 @@ const allCourse = async (req, res) => {
         instructorName: true,
         courseName: true,
         courseDescription: true,
+        imageUrl: true,
         price: true,
         rating: true,
         CourseCategory: {
@@ -40,6 +41,7 @@ const allCourse = async (req, res) => {
     // Convert BigInt to string before sending the response
     const responseData = data.map((course) => ({
       ...course,
+      thumbnailCourse: course.imageUrl,
       price: course.price ? parseFloat(course.price) : null,
       courseType: course.CourseType.typeName,
       courseCategory: course.CourseCategory.categoryName,
@@ -50,6 +52,7 @@ const allCourse = async (req, res) => {
       delete course.CourseType;
       delete course.CourseCategory;
       delete course.CourseLevel;
+      delete course.imageUrl;
     });
 
     return res.status(200).json({
