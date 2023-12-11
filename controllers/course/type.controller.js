@@ -1,4 +1,4 @@
-const { courseType } = require("../../models");
+const { courseType, course } = require("../../models");
 
 const allType = async(req, res) => {
     try {
@@ -26,52 +26,133 @@ const allType = async(req, res) => {
 }
 const premiumType = async(req, res) => {
     try {
-        const data = await courseType.findMany({
+        const data = await course.findMany({
             where: {
-                typeName: "Premium",
+                CourseType: {
+                    typeName: "Premium",
+                },
             },
             orderBy: {
                 id: "asc",
             },
             select: {
                 id: true,
-                typeName: true,
+                instructorName: true,
+                courseName: true,
+                courseDescription: true,
+                imageUrl: true,
+                price: true,
+                rating: true,
+                CourseCategory: {
+                    select: {
+                        categoryName: true,
+                    },
+                },
+                CourseType: {
+                    select: {
+                        typeName: true,
+                    },
+                },
+                CourseLevel: {
+                    select: {
+                        levelName: true,
+                    },
+                },
             },
+        });
+
+        // Convert BigInt to string before sending the response
+        const responseData = data.map((course) => ({
+            ...course,
+            thumbnailCourse: course.imageUrl,
+            price: course.price ? parseFloat(course.price) : null,
+            courseType: course.CourseType.typeName,
+            courseCategory: course.CourseCategory.categoryName,
+            courseLevel: course.CourseLevel.levelName,
+        }));
+
+        responseData.forEach((course) => {
+            delete course.CourseType;
+            delete course.CourseCategory;
+            delete course.CourseLevel;
+            delete course.imageUrl;
         });
 
         return res.status(200).json({
             error: false,
-            message: "Load premium course types successful",
-            response: data,
+            message: "Load premium courses successful",
+            response: responseData,
         });
     } catch (error) {
+        console.log(error);
         return res.status(500).json({
             error: true,
             message: error,
         });
     }
 };
+
 const gratisType = async(req, res) => {
     try {
-        const data = await courseType.findMany({
+        const data = await course.findMany({
             where: {
-                typeName: "Gratis",
+                CourseType: {
+                    typeName: "Gratis",
+                },
             },
             orderBy: {
                 id: "asc",
             },
             select: {
                 id: true,
-                typeName: true,
+                instructorName: true,
+                courseName: true,
+                courseDescription: true,
+                imageUrl: true,
+                price: true,
+                rating: true,
+                CourseCategory: {
+                    select: {
+                        categoryName: true,
+                    },
+                },
+                CourseType: {
+                    select: {
+                        typeName: true,
+                    },
+                },
+                CourseLevel: {
+                    select: {
+                        levelName: true,
+                    },
+                },
             },
+        });
+
+        // Convert BigInt to string before sending the response
+        const responseData = data.map((course) => ({
+            ...course,
+            thumbnailCourse: course.imageUrl,
+            price: course.price ? parseFloat(course.price) : null,
+            courseType: course.CourseType.typeName,
+            courseCategory: course.CourseCategory.categoryName,
+            courseLevel: course.CourseLevel.levelName,
+        }));
+
+        responseData.forEach((course) => {
+            delete course.CourseType;
+            delete course.CourseCategory;
+            delete course.CourseLevel;
+            delete course.imageUrl;
         });
 
         return res.status(200).json({
             error: false,
-            message: "Load Gratis course types successful",
-            response: data,
+            message: "Load Gratis courses successful",
+            response: responseData,
         });
     } catch (error) {
+        console.log(error);
         return res.status(500).json({
             error: true,
             message: error,
