@@ -4,6 +4,7 @@ const {
   courseType,
   courseCategory,
   courseLevel,
+  userCourseContent,
 } = require("../../models");
 
 const allCourse = async (req, res) => {
@@ -82,6 +83,30 @@ const allCourse = async (req, res) => {
 const detailCourse = async (req, res) => {
   try {
     const courseId = req.params.courseId; // params courseId from course.route
+    let jwtUserId = null;
+    let alreadyBuy = false;
+    let boolShowVideo = false;
+
+    try {
+      jwtUserId = res.sessionLogin.id ? res.sessionLogin.id : null; // From checktoken middlewares
+    } catch (error) {
+      jwtUserId = null;
+    }
+
+    if (jwtUserId != null || jwtUserId != undefined) {
+      const cekAlreadyBuy = await userCourseContent.findFirst({
+        where: {
+          courseId: parseInt(courseId),
+          userId: parseInt(jwtUserId),
+        },
+      });
+
+      if (cekAlreadyBuy) {
+        boolShowVideo = true;
+        alreadyBuy = true;
+      }
+    }
+
     const data = await course.findFirst({
       where: {
         id: parseInt(courseId),
@@ -94,7 +119,7 @@ const detailCourse = async (req, res) => {
           select: {
             id: true,
             contentTitle: true,
-            videoLink: true,
+            videoLink: boolShowVideo,
             status: true,
           },
         },
@@ -172,6 +197,7 @@ const detailCourse = async (req, res) => {
     // Convert BigInt to float before sending the response
     const responseData = {
       ...data,
+      alreadyBuy: alreadyBuy,
       rating: data.rating ? parseFloat(data.rating.toFixed(2)) : null,
       price: data.price ? parseFloat(data.price) : null,
       contentCount: parseInt(courseContentLength),

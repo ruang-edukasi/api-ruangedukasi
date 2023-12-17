@@ -316,7 +316,7 @@ module.exports = {
     try {
       const courseId = req.params.courseId; // courseId params from admin course.route
       const jwtAdminId = res.sessionLogin.id; // From checktoken middlewares
-      const { content_title, video_link } = req.body;
+      const { content_title, video_link, status } = req.body;
       const checkAdminExist = await admin.findUniqueOrThrow({
         where: { id: jwtAdminId },
       });
@@ -327,12 +327,16 @@ module.exports = {
           .json({ error: true, message: "Admin not found" });
       }
 
+      if (status == null) {
+        status = "Active";
+      }
+
       const addCourseContent = await courseContent.create({
         data: {
           courseId: parseInt(courseId),
           contentTitle: content_title,
           videoLink: video_link,
-          status: "Active",
+          status: status,
         },
       });
 
