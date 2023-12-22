@@ -120,8 +120,11 @@ const detailCourse = async (req, res) => {
           select: {
             id: true,
             contentTitle: true,
-            videoLink: boolShowVideo,
+            videoLink: true,
             status: true,
+          },
+          orderBy: {
+            id: "asc",
           },
         },
         courseSkill: {
@@ -153,6 +156,18 @@ const detailCourse = async (req, res) => {
         },
       },
     });
+
+    // Check preview course
+    if (data && data.courseContent) {
+      data.courseContent.forEach((content) => {
+        if (boolShowVideo || content.status == "Preview") {
+          const videoLinkValue = content.videoLink;
+          content.videoLink = videoLinkValue;
+        } else {
+          content.videoLink = "#";
+        }
+      });
+    }
 
     // Check courseTypeId
     const valueTypeId = data.courseTypeId;
