@@ -6,6 +6,7 @@ const {
   courseLevel,
   userCourseContent,
   coursePPN,
+  userCourseContentProgress,
 } = require("../../models");
 
 const allCourse = async (req, res) => {
@@ -219,9 +220,51 @@ const detailCourse = async (req, res) => {
     const priceFinal = data.price ? parseFloat(data.price) : 0;
     const ppnPrice = (parseInt(dataPajak.ppn) / 100) * priceFinal;
 
+    // Check Progress Course
+    const checkTotalContentCourse = await courseContent.count({
+      where: {
+        courseId: parseInt(courseId),
+      },
+    });
+
+    const checkTotalContentCourseProgress =
+      await userCourseContentProgress.count({
+        where: {
+          courseId: parseInt(courseId),
+          userId: parseInt(jwtUserId),
+        },
+      });
+
+    const percentProgress =
+      (checkTotalContentCourseProgress / checkTotalContentCourse) * 100;
+
+    const dataUserCourseContentProgress =
+      await userCourseContentProgress.findMany({
+        where: {
+          userId: parseInt(jwtUserId),
+          courseId: parseInt(courseId),
+        },
+        orderBy: {
+          id: "asc",
+        },
+      });
+
+    // Add InfoProgress to each course content item
+    const updatedCourseContent = data.courseContent.map((content, index) => {
+      const progress = dataUserCourseContentProgress[index];
+      const infoProgress = progress ? "Done" : "Not Started";
+
+      return {
+        ...content,
+        infoProgress: infoProgress,
+      };
+    });
+
     // Convert BigInt to float before sending the response
     const responseData = {
       ...data,
+      courseContent: updatedCourseContent,
+      progressPercent: parseFloat(percentProgress),
       ppnPercent: parseInt(dataPajak.ppn),
       ppnPrice: parseFloat(ppnPrice),
       priceAfterPpn: parseFloat(priceFinal) + parseFloat(ppnPrice),
