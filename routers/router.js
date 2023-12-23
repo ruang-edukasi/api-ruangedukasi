@@ -13,6 +13,7 @@ const profileUserRouter = require("./user/profile.route");
 const userOrderCourseRouter = require("./user/order.route");
 const userEnrollCourseRouter = require("./user/enroll.route");
 const userCouponCourseRouter = require("./user/coupon.route");
+const userProgressCourseRouter = require("./user/progress.route");
 const userDashboardRouter = require("./user/dashboard.route");
 const categoryRouter = require("./course/category.route");
 const levelRouter = require("./course/level.route");
@@ -48,6 +49,7 @@ router.use("/user/order", userOrderCourseRouter);
 router.use("/user/enroll", userEnrollCourseRouter);
 router.use("/user/dashboard", userDashboardRouter);
 router.use("/check/coupon", userCouponCourseRouter);
+router.use("/progress", userProgressCourseRouter);
 
 // Course
 router.use("/category", categoryRouter);
