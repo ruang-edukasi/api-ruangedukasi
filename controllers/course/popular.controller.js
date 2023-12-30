@@ -62,7 +62,7 @@ const popularCourse = async(req, res) => {
 
         return res.status(200).json({
             error: false,
-            message: "Memuat kurses berhasil",
+            message: "Memuat kursus berhasil",
             response: limitedResponseData,
         });
     } catch (error) {
