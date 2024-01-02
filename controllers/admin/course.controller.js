@@ -636,6 +636,7 @@ module.exports = {
           instructorName: true,
           courseName: true,
           courseDescription: true,
+          studentCount: true,
           imageUrl: true,
           price: true,
           rating: true,
@@ -668,7 +669,7 @@ module.exports = {
       // Convert BigInt to string before sending the response
       const responseData = data.map((course) => ({
         ...course,
-        userCount: course.userCourseContent.length,
+        userCount: course.studentCount,
         thumbnailCourse: course.imageUrl,
         price: course.price ? parseFloat(course.price) : null,
         courseType: course.CourseType.typeName,
@@ -683,6 +684,7 @@ module.exports = {
         delete course.CourseType;
         delete course.CourseCategory;
         delete course.CourseLevel;
+        delete course.studentCount;
         delete course.imageUrl;
       });
 
