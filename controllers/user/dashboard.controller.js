@@ -162,7 +162,7 @@ const profileDashboard = async (req, res) => {
           courseLevel: dataUserCourse.Course.CourseLevel.levelName,
           courseContent: courseCount,
           courseRating: dataUserCourse.Course.rating,
-          percentProgress: percentProgress,
+          percentProgress: parseFloat(percentProgress.toFixed(2)),
         };
       }),
     };
@@ -187,32 +187,32 @@ const profileDashboard = async (req, res) => {
 const dashboardSearch = async (req, res) => {
   try {
     const jwtUserId = res.sessionLogin.id; // From checktoken middlewares
-    const typeSearchParams = req.query.typeName;
-    const catSearchParams = req.query.categoryName;
-    const levelSearchParams = req.query.levelName;
+    const catSearchParams = req.query.catId;
+    const levelSearchParams = req.query.levelId;
+    const typeSearchParams = req.query.typeId;
     const newCourse = req.query.terbaru;
     let sortirCourse = "asc";
 
-    if (newCourse != null) {
+    if (newCourse != null || newCourse == "true") {
       sortirCourse = "desc";
     }
 
     const typeSearchArray = typeSearchParams
       ? Array.isArray(typeSearchParams)
-        ? typeSearchParams.map(String)
-        : [String(typeSearchParams)]
+        ? typeSearchParams.map(Number)
+        : [Number(typeSearchParams)]
       : [];
 
     const categorySearchArray = catSearchParams
       ? Array.isArray(catSearchParams)
-        ? catSearchParams.map(String)
-        : [String(catSearchParams)]
+        ? catSearchParams.map(Number)
+        : [Number(catSearchParams)]
       : [];
 
     const levelSearchArray = levelSearchParams
       ? Array.isArray(levelSearchParams)
-        ? levelSearchParams.map(String)
-        : [String(levelSearchParams)]
+        ? levelSearchParams.map(Number)
+        : [Number(levelSearchParams)]
       : [];
 
     const data = await user.findFirst({
@@ -233,21 +233,21 @@ const dashboardSearch = async (req, res) => {
             Course: {
               ...(typeSearchArray.length > 0 && {
                 CourseType: {
-                  typeName: {
+                  id: {
                     in: typeSearchArray,
                   },
                 },
               }),
               ...(categorySearchArray.length > 0 && {
                 CourseCategory: {
-                  categoryName: {
+                  id: {
                     in: categorySearchArray,
                   },
                 },
               }),
               ...(levelSearchArray.length > 0 && {
                 CourseLevel: {
-                  levelName: {
+                  id: {
                     in: levelSearchArray,
                   },
                 },
